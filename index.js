@@ -13,11 +13,21 @@ mongoose
   .catch((err) => console.log("Error connecting to MongoDB:", err));
 
 // Registration Route
-app.post("/register", (req, res) => {
-  UserModel.create(req.body)
-    .then((user) => res.json(user))
-    .catch((err) => res.json(err));
+app.post("/register", async (req, res) => {
+  try {
+    const existingUser = await UserModel.findOne({ email: req.body.email });
+    if (existingUser) {
+      return res.status(400).json({ message: "User already exists" });
+    }
+
+    const newUser = await UserModel.create(req.body);
+    res.status(201).json({ message: "Registration successful", user: newUser });
+  } catch (error) {
+    console.error("Error during registration:", error);
+    res.status(500).json({ message: "Server error" });
+  }
 });
+
 
 // Login Route
 app.post("/login", (req, res) => {
