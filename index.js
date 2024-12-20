@@ -2,6 +2,7 @@ const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
 const UserModel = require("./models/User");
+const CardModel = require("./models/Card")
 
 const app = express();
 app.use(express.json());
@@ -52,6 +53,47 @@ app.post("/login", (req, res) => {
     .catch((err) => res.status(500).json("Server error"));
 });
 
+// Route to create a new card
+app.post('/cards', async (req, res) => {
+  try {
+    const { title } = req.body;
+
+    // Validate request body
+    if (!title) {
+      return res.status(400).json({ error: "The 'title' field is required." });
+    }
+
+    // Create and save new card
+    const newCard = new CardModel({ title });
+    await newCard.save();
+
+    // Send created card as response
+    res.status(201).json(newCard);
+  } catch (err) {
+    console.error("Error creating card:", err.message);
+    res.status(500).json({ error: "Failed to create card. Please try again later." });
+  }
+});
+
+// Route to get all cards
+app.get('/cards', async (req, res) => {
+  try {
+    // Fetch all cards
+    const cards = await CardModel.find();
+
+    // Send cards as response
+    res.status(200).json(cards);
+  } catch (err) {
+    console.error("Error fetching cards:", err.message);
+    res.status(500).json({ error: "Failed to fetch cards. Please try again later." });
+  }
+});
+
+
+
+
 app.listen(3001, () => {
   console.log("Server is running");
 });
+
+module.exports = app;
